@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.foga.openfire</groupId>
+	<artifactId>plugin-webrtc</artifactId>
+	<version>1.0-SNAPSHOT</version>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>devzyncro/thirdparty</id>
+			<url>http://devzyncro.intercomgi.com.ar/nexus/content/repositories/thirdparty</url>
+		</pluginRepository>
+	</pluginRepositories>
+	
+	<repositories>
+		<repository>
+			<id>repository.jboss.org/thirdparty-uploads</id>
+			<url>https://repository.jboss.org/nexus/content/repositories/thirdparty-uploads</url>
+		</repository>
+	</repositories>
+	
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>com.reucon.maven.plugins</groupId>
+				<artifactId>maven-openfire-plugin</artifactId>
+				<extensions>true</extensions>
+				<executions>
+					<execution>
+						<id>make-a-jar</id>
+						<phase>install</phase>
+						<goals>
+							<goal>openfire-plugin</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+	
+</project>

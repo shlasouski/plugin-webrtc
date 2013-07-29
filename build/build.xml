@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="WebRTC Plugin" default="install" basedir="..">
+	<description>WebRTC Plugin Build</description>
+	<property name="openfire.home" value="../openfire/target/openfire" />
+
+	<property name="WebRTC.dir" value="${basedir}" />
+
+	<path id="build.classpath">
+		<fileset dir="${openfire.home}\lib" includes="openfire.jar" />
+		<fileset dir="${openfire.home}\lib" includes="servlet.jar" />
+	</path>
+
+	<target name="init">
+		<!-- create our directories -->
+		<mkdir dir="${WebRTC.dir}\target\classes" />
+	</target>
+
+	<target name="clean">
+		<delete dir="${WebRTC.dir}\target" />
+	</target>
+
+	<target name="compile" depends="init">
+		<javac debug="true" deprecation="true" srcdir="${WebRTC.dir}\src" destdir="${WebRTC.dir}\target\classes">
+			<classpath refid="build.classpath" />
+		</javac>
+	</target>
+
+	<target name="jar" depends="clean, compile">
+		<copydir src="${WebRTC.dir}\src\main\webapp" dest="${WebRTC.dir}\target\plugin"/>
+		<copydir src="${WebRTC.dir}\target\classes" dest="${WebRTC.dir}\target\plugin\classes"/>
+		<jar destfile="${WebRTC.dir}\target\webrtc.jar" basedir="${WebRTC.dir}\target\plugin">
+			<fileset dir="${WebRTC.dir}\src\main\openfire">
+				<include name="**" />
+			</fileset>
+		</jar>
+	</target>
+	
+	<target name="install" depends="jar">
+		<delete file="${openfire.home}\plugins\webrtc.jar" />
+		<copy file="${WebRTC.dir}\target\webrtc.jar" todir="${openfire.home}\plugins"/>
+	</target>
+	
+</project>
+

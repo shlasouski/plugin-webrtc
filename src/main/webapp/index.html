@@ -1,0 +1,454 @@
+<html>
+<head>
+<title>HTML5 WebRTC Client</title>
+<meta http-equiv="X-UA-Compatible" content="chrome=1">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script type='text/javascript'>
+	var logger = undefined; //console;
+</script>
+<link rel="icon" type="image/png" href="img/telestax-favicon.png">
+<link href="css/bootstrap.min.css" rel="stylesheet">
+<link href="css/bootstrap-responsive.css" rel="stylesheet">
+<link href="css/docs.css" rel="stylesheet">
+</head>
+<body onload="onLoad()" onbeforeunload="onBeforeUnload()">
+	<div class="navbar navbar-inverse navbar-fixed-top">
+		<div class="navbar-inner">
+			<div class="container">
+				<a class="brand" href="#">HTML5 WebRTC Client Demo for Openfire
+					using WebSockets & JingleNodes Plugins</a>
+			</div>
+		</div>
+	</div>
+	<div class="container-fluid">
+		<div class="row-fluid">
+			<div class="span5">
+				<div class="form-horizontal well">
+					<div id="jingleAccountSettings">
+						<div class="nav-header">Registration</div>
+						<div class="nav-header">&nbsp;</div>
+						<div class="control-group" id='jingleDisplayNameDiv'>
+							<label class="control-label"><a style="color: #555555"
+								href="#" rel="tooltip"
+								title="Name that will be displayed when you contact others"
+								data-placement="top"data-delay: { show: 10, hide: 100 }>User
+									Name</a>:</label> <input id="jingleDisplayName" type="text" size="30">
+						</div>
+
+						<div class="accordion" id="accordion1">
+							<div class="accordion-group">
+								<div class="accordion-heading">
+									<a class="accordion-toggle nav-header" data-toggle="collapse"
+										data-parent="#accordion1" href="#security"> Security </a>
+								</div>
+								<div id="security" class="accordion-body collapse">
+									<div class="accordion-inner">
+										<div class="control-group" id='jingleLoginDiv'>
+											<label class="control-label"><a
+												style="color: #555555" href="#" rel="tooltip"
+												title="Login to authenticate" data-placement="top"data-delay: { show: 10, hide: 100 }>Openfire
+													Login</a>:</label> <input id="jingleLogin" type="text" size="30">
+										</div>
+										<div class="control-group" id='jinglePasswordDiv'>
+											<label class="control-label"><a
+												style="color: #555555" href="#" rel="tooltip"
+												title="Password to authenticate" data-placement="top"data-delay: { show: 10, hide: 100 }>Openfire
+													Password</a>:</label> <input id="jinglePassword" type="password"
+												size="30">
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="accordion-group">
+								<div class="accordion-heading">
+									<a class="accordion-toggle nav-header" data-toggle="collapse"
+										data-parent="#accordion1" href="#advancedSettings">
+										Advanced Settings </a>
+								</div>
+								<div id="advancedSettings" class="accordion-body collapse">
+									<div class="accordion-inner">
+										<div class="control-group" id='stunServerDiv'>
+											<label class="control-label" for="stunServer"><a
+												style="color: #555555" href="#" rel="tooltip"
+												title="Specify the IP Address and Port of a Stun Server"
+												data-placement="top"data-delay: { show: 10, hide: 100 }>STUN
+													server</a>:</label> <input id="stunServer" type="text" size="30">
+										</div>
+										<div class="control-group" id='wsUrlDiv'>
+											<label class="control-label"><a
+												style="color: #555555" href="#" rel="tooltip"
+												title="Specify the IP Address and Port of a WebSocket Server"
+												data-placement="top"data-delay: { show: 10, hide: 100 }>Outbound
+													Proxy</a> :</label> <input id="wsUrl" type="text" size="30">
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="control-group" id='input'>
+							<input id='Register' class="btn btn-primary" type='submit'
+								name='Register' disabled="disabled" value='Register'
+								onclick="register();" /> &nbsp;&nbsp;&nbsp;&nbsp; <input
+								id='UnRegister' class="btn btn-primary" type='submit'
+								name='UnRegister' value='UnRegister' disabled="disabled"
+								onclick="unRegister();" />
+						</div>
+					</div>
+				</div>
+				<!--/.well -->
+			</div>
+			<!--/span-->
+			<div class="span7">
+				<div class="form-horizontal well">
+					<div>
+						<div class="nav-header">Communicate</div>
+						<p class="lead">
+						<div id='jingleContactPhoneNumberDiv'>
+							<div id='input'>
+								Contact To Call: <input id="jingleContactPhoneNumber"
+									type="text" size="100" style="width: 300px"
+									class="input-xlarge focused"> &nbsp;<input id='Call'
+									class="btn btn-primary" type='submit' name='Call' value='Call'
+									disabled="disabled"
+									onclick="call(document.getElementById('jingleContactPhoneNumber').value);" />
+								&nbsp;<input id='Bye' class="btn btn-primary" type='submit'
+									name='Bye' value='Bye' disabled="disabled" onclick="bye();" />
+								<div id='media'>
+									<div id='over'>
+										<video id="localVideoPreview" muted="true" autoplay="autoplay"
+											class="ui-widget-content"
+											style="height: 120px; width: 160px; margin-top: 10px; margin-right: 600px; -webkit-transition-property: opacity; -webkit-transition-duration: 2s;"></video>
+									</div>
+									<div id='resizable'>
+										<video id="remoteVideo" onDblClick="toggleFullScreen();"
+											width="640px" height="480px" autoplay="autoplay"
+											style="margin-top: 10px; -webkit-transition-property: opacity; -webkit-transition-duration: 2s;"></video>
+									</div>
+								</div>
+								<p>
+									<i>Double-Click the video to enter Full Screen mode </i>
+								</p>
+							</div>
+						</div>
+						</p>
+					</div>
+				</div>
+			</div>
+		</div>
+
+
+		<div class="modal hide fade" id="callModal" tabindex="-1"
+			role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+			<div class="modal-header">
+				<!--button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button-->
+				<h3 id="call_message">Incoming Call</h3>
+			</div>
+			<div class="modal-footer">
+				<button class="btn reject-btn" data-dismiss="modal"
+					aria-hidden="true">Reject</button>
+				<button class="btn btn-primary accept-btn" data-dismiss="modal">Accept</button>
+			</div>
+		</div>
+
+		<div class="modal hide fade" id="messageModal" tabindex="-1"
+			role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+			<div class="modal-header">
+				<!--button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button-->
+				<h3 id="modal_message">Incoming Call</h3>
+			</div>
+			<div class="modal-footer">
+				<button class="btn btn-primary" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+
+	<audio id="ringing" loop src="audio/ringing.wav" />
+
+	<script src="js/jquery-1.7.2.min.js"></script>
+	<script src="js/jquery-ui-1.8.23.custom.min.js"></script>
+	<script src="js/bootstrap.js"></script>
+	<script src="js/bootstrap.min.js"></script>
+	<script src="js/webrtc-jingle.js" type="text/javascript"></script>
+	<script type='text/javascript'>
+		var defaultSipDisplayName = "user1";
+		var defaultSipLogin = "user1";
+		var defaultSipPassword = "changeme";
+		var defaultSipContactPhoneNumber = "user2@" + window.location.hostname
+				+ "/user2";
+		var defaultWsUrl = "ws://" + window.location.host
+				+ "/ws/server?username=null&password=null&resource="
+				+ defaultSipDisplayName
+
+		var localVideo, remoteVideo;
+
+		var ws = null, interval = null;
+		var webrtc = null, remoteParty = null;
+
+		function onLoad() {
+			console.debug("onLoad");
+			document.getElementById("stunServer").value = WebRtcJingle.stun;
+			document.getElementById("wsUrl").value = defaultWsUrl;
+			document.getElementById("jingleDisplayName").value = defaultSipDisplayName;
+			document.getElementById("jingleLogin").value = defaultSipLogin;
+			document.getElementById("jinglePassword").value = defaultSipPassword;
+			document.getElementById("jingleContactPhoneNumber").value = defaultSipContactPhoneNumber;
+
+			hideCallButton();
+			hideUnRegisterButton();
+			showRegisterButton();
+			hideByeButton();
+
+			webrtc = new WebRtcJingle();
+
+			webrtc.startApp(
+					{
+
+						sendPacket : function(packet) {
+							//console.log("sendPacket " + packet);
+							ws.send(packet);
+						},
+
+						startRemoteMedia : function(stream, from) {
+							//console.log("startRemoteMedia " + " " + from);
+
+							WebRtcJingle.attachMediaStream(document
+									.getElementById("remoteVideo"), stream);
+							//document.getElementById("localVideoPreview").play();
+							//document.getElementById("remoteVideo").play();
+
+							showByeButton();
+							hideCallButton();
+							hideUnRegisterButton();
+						},
+
+						startLocalMedia : function(stream) {
+							//console.log("startLocalMedia ");
+							WebRtcJingle.attachMediaStream(document
+									.getElementById("localVideoPreview"),
+									stream);
+							showRegisterButton();
+						},
+
+						incomingCall : function(farParty) {
+							//console.log("incomingCall " + farParty);
+							show_desktop_notification("Incoming Call from "
+									+ farParty);
+							remoteParty = farParty;
+
+							startRinging();
+
+							$("#call_message").html(
+									"<p>Incoming Call from " + remoteParty
+											+ "</p>");
+							$('#callModal').modal();
+						},
+
+						terminatedCall : function() {
+							//console.log("terminatedCall");
+							modal_alert("Contact has hangup");
+
+							hideByeButton();
+							showCallButton();
+							showUnRegisterButton();
+						}
+
+					}, {
+						"iceServers" : [ {
+							"url" : WebRtcJingle.stun
+						} ]
+					});
+
+		}
+
+		function onBeforeUnload() {
+			unRegister();
+		}
+
+		function register() {
+
+			if (window.webkitNotifications) {
+				window.webkitNotifications.requestPermission();
+			}
+			connect();
+		}
+
+		function connect() {
+			//console.log("connect");
+
+			var me = document.getElementById("jingleDisplayName").value;
+			var protocol = window.location.protocol == "http:" ? "ws" : "wss";
+
+			ws = new WebSocket(protocol + "://" + window.location.host
+					+ "/ws/server?username=null&password=null&resource=" + me,
+					"xmpp");
+			ws.onopen = onOpen;
+			ws.onmessage = onMessage;
+			ws.onclose = onConnectionClose;
+
+			webrtc.jid = me + "@" + window.location.hostname + "/" + me;
+		}
+
+		function onOpen() {
+			//console.log("onOpen");
+			interval = setInterval(function() {
+				if (ws != null)
+					ws.send(" ")
+			}, 10000);
+			ws.send("<presence/>");
+
+			showCallButton();
+			showUnRegisterButton();
+			hideRegisterButton();
+			hideByeButton();
+		}
+
+		function onMessage(packet) {
+			//console.log("onMessage");
+			webrtc.onMessage(packet.data);
+		}
+
+		function onConnectionClose() {
+			//console.log("onConnectionClose");
+			modal_alert("Disconnected with Openfire server");
+			show_desktop_notification("Disconnected from Openfire Server");
+
+			clearInterval(interval);
+
+			hideCallButton();
+			hideUnRegisterButton();
+			showRegisterButton();
+			hideByeButton();
+		}
+
+		function unRegister() {
+			webrtc.jingleTerminate();
+			ws.close();
+		}
+
+		function call(to) {
+			webrtc.jingleInitiate(to);
+		}
+
+		function bye() {
+			webrtc.jingleTerminate();
+		}
+
+		function hideCallButton() {
+			var call = document.getElementById("Call");
+			call.disabled = true;
+		}
+
+		function showCallButton() {
+			var call = document.getElementById("Call");
+			call.disabled = false;
+		}
+
+		function hideByeButton() {
+			var bye = document.getElementById("Bye");
+			bye.disabled = true;
+		}
+
+		function showByeButton() {
+			var bye = document.getElementById("Bye");
+			bye.disabled = false;
+		}
+
+		function showUnRegisterButton() {
+			var unRegister = document.getElementById("UnRegister");
+			unRegister.disabled = false;
+		}
+
+		function showRegisterButton() {
+			var register = document.getElementById("Register");
+			register.disabled = false;
+		}
+		function hideUnRegisterButton() {
+			var unRegister = document.getElementById("UnRegister");
+			unRegister.disabled = true;
+		}
+
+		function hideRegisterButton() {
+			var register = document.getElementById("Register");
+			register.disabled = true;
+		}
+
+		function startRinging() {
+			ringing.play();
+		}
+
+		function stopRinging() {
+			ringing.pause();
+		}
+
+		function show_desktop_notification(message) {
+			if (window.webkitNotifications
+					&& window.webkitNotifications.checkPermission() == 0) {
+				var thumb = "img/notification.gif";
+				var title = "HTML5 WebRTC Client";
+				var popup = window.webkitNotifications.createNotification(
+						thumb, title, message);
+				popup.show();
+
+				setTimeout(function() {
+					popup.cancel();
+				}, '10000');
+			}
+		}
+
+		function modal_alert(message) {
+			$("#modal_message").html(message);
+			$('#messageModal').modal();
+		}
+
+		function toggleFullScreen() {
+			var videoElement = document.getElementById("remoteVideo");
+
+			if (!document.mozFullScreen && !document.webkitFullScreen) {
+				if (videoElement.mozRequestFullScreen) {
+					videoElement.mozRequestFullScreen();
+
+				} else {
+					videoElement
+							.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);
+				}
+
+			} else {
+
+				if (document.mozCancelFullScreen) {
+					document.mozCancelFullScreen();
+				} else {
+					document.webkitCancelFullScreen();
+				}
+			}
+		}
+
+		$('#callModal .accept-btn').click(function() {
+			stopRinging();
+			webrtc.acceptCall(remoteParty)
+		});
+
+		$('#callModal .reject-btn').click(function() {
+			hideByeButton();
+			showCallButton();
+			showUnRegisterButton();
+			stopRinging();
+		});
+
+		$(function() {
+			$("#resizable").resizable({
+				maxHeight : 640,
+				maxWidth : 480,
+				minHeight : 220,
+				minWidth : 160
+			});
+		});
+
+		$(function() {
+			$("#localVideoPreview").draggable({
+				containment : "#media",
+				scroll : false
+			});
+		});
+	</script>
+</body>
+</html>
